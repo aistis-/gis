@@ -2,6 +2,8 @@ package org.geotools.gis;
 
 import java.io.File;
 
+import javax.swing.UIManager;
+
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -10,11 +12,6 @@ import org.geotools.map.MapContext;
 import org.geotools.swing.JMapFrame;
 import org.geotools.swing.data.JFileDataStoreChooser;
 
-/**
- * Prompts the user for a shapefile and displays the contents on the screen in a map frame.
- * <p>
- * This is the GeoTools Quickstart application used in documentationa and tutorials. *
- */
 public class App {
 
     /**
@@ -22,6 +19,9 @@ public class App {
      * contents on the screen in a map frame
      */
     public static void main(String[] args) throws Exception {
+    	
+    	UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+    	
         // display a data store file chooser dialog for shapefiles
         File file = JFileDataStoreChooser.showOpenFile("shp", null);
         if (file == null) {
