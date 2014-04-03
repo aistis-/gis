@@ -22,7 +22,7 @@ public class GUI {
 
 	static MapContent map = new MapContent();
 	static JMapFrame show = new JMapFrame(map);
-	static QueryLab data = new QueryLab();
+	static QueryLab queries = new QueryLab();
 	
 	public void create() {
 		
@@ -76,7 +76,7 @@ public class GUI {
 	}
 	
 	private void data() {
-		data.setExtendedState(JMapFrame.MAXIMIZED_BOTH);
-	    data.setVisible(true);
+		queries.setExtendedState(JMapFrame.MAXIMIZED_BOTH);
+		queries.setVisible(true);
 	}
 }
