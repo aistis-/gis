@@ -61,7 +61,7 @@ public class GUI {
 	}
 	
 	private void addLayer() throws Exception {
-	    File file = JFileDataStoreChooser.showOpenFile("shp", null);
+	    File file = JFileDataStoreChooser.showOpenFile("shp, tif, rrd", null);
 	    if (file == null) {
 	        return;
 	    }
@@ -76,6 +76,7 @@ public class GUI {
 	}
 	
 	private void data() {
+		data.setExtendedState(JMapFrame.MAXIMIZED_BOTH);
 	    data.setVisible(true);
 	}
 }
