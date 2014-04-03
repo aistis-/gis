@@ -2,8 +2,11 @@ package org.geotools.gis;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.RenderingHints.Key;
 import java.awt.event.ActionEvent;
-import java.util.Map;
+import java.io.IOException;
+import java.util.Set;
+
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -15,37 +18,41 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+
+import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFactorySpi;
-import org.geotools.data.DataStoreFinder;
+import org.geotools.data.DataUtilities;
+import org.geotools.data.FeatureListener;
+import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
-import org.geotools.data.postgis.PostgisNGDataStoreFactory;
-import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.data.QueryCapabilities;
+import org.geotools.data.ResourceInfo;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQL;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.swing.JMapFrame;
 import org.geotools.swing.action.SafeAction;
-import org.geotools.swing.data.JDataStoreWizard;
 import org.geotools.swing.table.FeatureCollectionTableModel;
-import org.geotools.swing.wizard.JWizard;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 
-/**
- * The Query Lab is an excuse to try out Filters and Expressions on your own data with a table to
- * show the results.
- * <p>
- * Remember when programming that you have other options then the CQL parser, you can directly make
- * a Filter using CommonFactoryFinder.getFilterFactory2().
- */
-public class QueryLab extends JFrame {
-    private DataStore dataStore;
-    private JComboBox featureTypeCBox;
+public class DataTables extends JFrame {
+
+	public DataStore dataStore;
+    public JComboBox featureTypeCBox;
     private JTable table;
     private JTextField text;
     
-    public QueryLab() {
-        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+	public DataTables() {
+		setExtendedState(JMapFrame.MAXIMIZED_BOTH);
+		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
 
         text = new JTextField(80);
@@ -63,26 +70,12 @@ public class QueryLab extends JFrame {
         JMenuBar menubar = new JMenuBar();
         setJMenuBar(menubar);
 
-        JMenu fileMenu = new JMenu("File");
-        menubar.add(fileMenu);
-
         featureTypeCBox = new JComboBox();
         menubar.add(featureTypeCBox);
 
         JMenu dataMenu = new JMenu("Data");
         menubar.add(dataMenu);
         pack();
-        
-        fileMenu.add(new SafeAction("Open shapefile...") {
-            public void action(ActionEvent e) throws Throwable {
-                connect(new ShapefileDataStoreFactory());
-            }
-        });
-        fileMenu.add(new SafeAction("Exit") {
-            public void action(ActionEvent e) throws Throwable {
-                System.exit(0);
-            }
-        });
         
         dataMenu.add(new SafeAction("Get features") {
             public void action(ActionEvent e) throws Throwable {
@@ -101,50 +94,35 @@ public class QueryLab extends JFrame {
         });
     }
     
-    private void connect(DataStoreFactorySpi format) throws Exception {
-        JDataStoreWizard wizard = new JDataStoreWizard(format);
-        int result = wizard.showModalDialog();
-        if (result == JWizard.FINISH) {
-            Map<String, Object> connectionParameters = wizard.getConnectionParameters();
-            dataStore = DataStoreFinder.getDataStore(connectionParameters);
-            if (dataStore == null) {
-                JOptionPane.showMessageDialog(null, "Could not connect - check parameters");
-            }
-            updateUI();
-        }
-    }
-    
-    private void updateUI() throws Exception {
-        ComboBoxModel cbm = new DefaultComboBoxModel(dataStore.getTypeNames());
-        featureTypeCBox.setModel(cbm);
-
-        table.setModel(new DefaultTableModel(5, 5));
-    }
-    
     private void filterFeatures() throws Exception {
         String typeName = (String) featureTypeCBox.getSelectedItem();
-        SimpleFeatureSource source = dataStore.getFeatureSource(typeName);
+        SimpleFeatureSource source = App.dataStore.getFeatureSourceByName(typeName);
 
         Filter filter = CQL.toFilter(text.getText());
+
         SimpleFeatureCollection features = source.getFeatures(filter);
+        
         FeatureCollectionTableModel model = new FeatureCollectionTableModel(features);
         table.setModel(model);
     }
     
     private void countFeatures() throws Exception {
         String typeName = (String) featureTypeCBox.getSelectedItem();
-        SimpleFeatureSource source = dataStore.getFeatureSource(typeName);
+        SimpleFeatureSource source = App.dataStore.getFeatureSourceByName(typeName);
 
         Filter filter = CQL.toFilter(text.getText());
         SimpleFeatureCollection features = source.getFeatures(filter);
 
         int count = features.size();
         JOptionPane.showMessageDialog(text, "Number of selected features:" + count);
+        
+        FeatureCollectionTableModel model = new FeatureCollectionTableModel(features);
+        table.setModel(model);
     }
     
     private void queryFeatures() throws Exception {
         String typeName = (String) featureTypeCBox.getSelectedItem();
-        SimpleFeatureSource source = dataStore.getFeatureSource(typeName);
+        SimpleFeatureSource source = App.dataStore.getFeatureSourceByName(typeName);
 
         FeatureType schema = source.getSchema();
         String name = schema.getGeometryDescriptor().getLocalName();

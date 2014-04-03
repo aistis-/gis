@@ -15,23 +15,24 @@ import org.geotools.map.MapContent;
 import org.geotools.styling.BasicPolygonStyle;
 import org.geotools.styling.Style;
 import org.geotools.swing.JMapFrame;
-import org.geotools.swing.action.SafeAction;
 import org.geotools.swing.data.JFileDataStoreChooser;
 
-public class GUI {
+public class MapViewer {
 
-	static MapContent map = new MapContent();
-	static JMapFrame show = new JMapFrame(map);
-	static QueryLab queries = new QueryLab();
+	public MapContent map;
+	public JMapFrame show;
 	
-	public void create() {
+	public MapViewer() {
+		
+		map = new MapContent();
+		show = new JMapFrame(map);
 		
 		JButton btnAddLayer = new JButton("Add Layer");
 	    btnAddLayer.addActionListener(
 	    new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
         		try {
-					addLayer();
+        			addLayerFromFile();
 				} catch (Exception e1) { System.out.println("Can't open file"); }
             }
 	    });
@@ -40,7 +41,7 @@ public class GUI {
 	    btnData.addActionListener(
 	    	    new ActionListener() {
 	    	        public void actionPerformed(ActionEvent e) {
-	            		data();
+	    	        	App.dataTables.setVisible(true);
 	                }
 	    	    });
 	
@@ -60,23 +61,25 @@ public class GUI {
 	    show.setVisible(true);
 	}
 	
-	private void addLayer() throws Exception {
+	private void addLayerFromFile() throws Exception {
 	    File file = JFileDataStoreChooser.showOpenFile("shp, tif, rrd", null);
 	    if (file == null) {
 	        return;
 	    }
 	
 	    FileDataStore store = FileDataStoreFinder.getDataStore(file);
-	    FeatureSource featureSource = store.getFeatureSource();
+	    FeatureSource<?, ?> featureSource = store.getFeatureSource();
+	    
+	    App.dataStore.addStore(store);
+	    addMapLayer(featureSource);
+	}
+	
+	public void addMapLayer(FeatureSource<?, ?> featureSource) {
 	    
 	    Style style = new BasicPolygonStyle();
 	
 	    Layer layer = new FeatureLayer(featureSource, style);
+	    
 	    map.addLayer(layer);
-	}
-	
-	private void data() {
-		queries.setExtendedState(JMapFrame.MAXIMIZED_BOTH);
-		queries.setVisible(true);
 	}
 }
