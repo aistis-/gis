@@ -22,19 +22,14 @@ import org.geotools.data.Query;
 import org.geotools.data.postgis.PostgisNGDataStoreFactory;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.filter.text.cql2.CQL;
 import org.geotools.swing.action.SafeAction;
 import org.geotools.swing.data.JDataStoreWizard;
 import org.geotools.swing.table.FeatureCollectionTableModel;
 import org.geotools.swing.wizard.JWizard;
-import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.Filter;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 
 /**
  * The Query Lab is an excuse to try out Filters and Expressions on your own data with a table to
@@ -48,14 +43,9 @@ public class QueryLab extends JFrame {
     private JComboBox featureTypeCBox;
     private JTable table;
     private JTextField text;
-
-    public static void main(String[] args) throws Exception {
-        JFrame frame = new QueryLab();
-        frame.setVisible(true);
-    }
     
     public QueryLab() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
 
         text = new JTextField(80);
@@ -88,17 +78,6 @@ public class QueryLab extends JFrame {
                 connect(new ShapefileDataStoreFactory());
             }
         });
-        fileMenu.add(new SafeAction("Connect to PostGIS database...") {
-            public void action(ActionEvent e) throws Throwable {
-                connect(new PostgisNGDataStoreFactory());
-            }
-        });
-        fileMenu.add(new SafeAction("Connect to DataStore...") {
-            public void action(ActionEvent e) throws Throwable {
-                connect(null);
-            }
-        });
-        fileMenu.addSeparator();
         fileMenu.add(new SafeAction("Exit") {
             public void action(ActionEvent e) throws Throwable {
                 System.exit(0);

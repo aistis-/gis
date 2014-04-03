@@ -15,12 +15,14 @@ import org.geotools.map.MapContent;
 import org.geotools.styling.BasicPolygonStyle;
 import org.geotools.styling.Style;
 import org.geotools.swing.JMapFrame;
+import org.geotools.swing.action.SafeAction;
 import org.geotools.swing.data.JFileDataStoreChooser;
 
 public class GUI {
 
 	static MapContent map = new MapContent();
 	static JMapFrame show = new JMapFrame(map);
+	static QueryLab data = new QueryLab();
 	
 	public void create() {
 		
@@ -34,7 +36,13 @@ public class GUI {
             }
 	    });
 	    
-	    JButton btnAddFilter = new JButton("Add Filter");
+	    JButton btnData = new JButton("Data tables");
+	    btnData.addActionListener(
+	    	    new ActionListener() {
+	    	        public void actionPerformed(ActionEvent e) {
+	            		data();
+	                }
+	    	    });
 	
 	    
 	    show.enableStatusBar(true);
@@ -43,8 +51,9 @@ public class GUI {
 	    show.setTitle("GIS");
 	    show.setExtendedState(JMapFrame.MAXIMIZED_BOTH); // maximize the window
 	    
+	    show.getToolBar().addSeparator();
 	    show.getToolBar().add(btnAddLayer);
-	    show.getToolBar().add(btnAddFilter);
+	    show.getToolBar().add(btnData);
 	    
 	    show.enableInputMethods(true);
 	    
@@ -64,5 +73,9 @@ public class GUI {
 	
 	    Layer layer = new FeatureLayer(featureSource, style);
 	    map.addLayer(layer);
+	}
+	
+	private void data() {
+	    data.setVisible(true);
 	}
 }
