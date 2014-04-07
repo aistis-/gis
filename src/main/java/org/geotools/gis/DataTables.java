@@ -56,7 +56,7 @@ public class DataTables extends JFrame {
         getContentPane().setLayout(new BorderLayout());
 
         text = new JTextField(80);
-        text.setText("include"); // include selects everything!
+        text.setText("include");
         getContentPane().add(text, BorderLayout.NORTH);
 
         table = new JTable();
