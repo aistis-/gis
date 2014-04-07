@@ -3,7 +3,6 @@ package org.geotools.gis;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Map;
 
 import javax.swing.JButton;
 
@@ -34,7 +33,7 @@ public class MapViewer {
 	        public void actionPerformed(ActionEvent e) {
         		try {
         			addLayerFromFile();
-				} catch (Exception e1) { System.out.println("Can't open file"); }
+				} catch (Exception e1) { e1.printStackTrace() ;System.out.println("Can't open file"); }
             }
 	    });
 	    
@@ -69,6 +68,10 @@ public class MapViewer {
 	
 	    FileDataStore store = FileDataStoreFinder.getDataStore(file);
 	    SimpleFeatureSource source = store.getFeatureSource();
+	    
+	    if (App.dataController.mapData.containsKey(source.getName().toString())) {
+	        return;
+	    }
 	    
 	    App.dataController.mapData.put(source.getName().toString(), source);
 	    addMapLayer(source);
