@@ -74,26 +74,21 @@ public class DataTables extends JFrame {
         menubar.add(dataMenu);
         pack();
         
-        dataMenu.add(new SafeAction("Get features") {
+        dataMenu.add(new SafeAction("Use filter") {
             public void action(ActionEvent e) throws Throwable {
                 filterFeatures();
             }
         });
-        dataMenu.add(new SafeAction("Count") {
+        dataMenu.add(new SafeAction("Count by query") {
             public void action(ActionEvent e) throws Throwable {
                 countFeatures();
             }
         });
-        dataMenu.add(new SafeAction("Geometry") {
+        dataMenu.add(new SafeAction("Use query") {
             public void action(ActionEvent e) throws Throwable {
                 queryFeatures();
             }
         });
-//        dataMenu.add(new SafeAction("Create layer from features") {
-//            public void action(ActionEvent e) throws Throwable {
-//                createFeaturesLayer();
-//            }
-//        });
         
         featureTypeCBox = new JComboBox();
         menubar.add(featureTypeCBox);

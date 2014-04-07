@@ -74,6 +74,8 @@ public class MapViewer {
 	    }
 	    
 	    App.dataController.mapData.put(source.getName().toString(), source);
+	    App.dataTables.featureTypeCBox.addItem(source.getName().toString());
+	    
 	    addMapLayer(source);
 	}
 	
