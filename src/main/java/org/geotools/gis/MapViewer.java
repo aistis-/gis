@@ -3,12 +3,13 @@ package org.geotools.gis;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Map;
 
 import javax.swing.JButton;
 
-import org.geotools.data.FeatureSource;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
+import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
@@ -26,7 +27,7 @@ public class MapViewer {
 		
 		map = new MapContent();
 		show = new JMapFrame(map);
-		
+			
 		JButton btnAddLayer = new JButton("Add Layer");
 	    btnAddLayer.addActionListener(
 	    new ActionListener() {
@@ -44,7 +45,6 @@ public class MapViewer {
 	    	        	App.dataTables.setVisible(true);
 	                }
 	    	    });
-	
 	    
 	    show.enableStatusBar(true);
 	    show.enableToolBar(true);
@@ -68,17 +68,17 @@ public class MapViewer {
 	    }
 	
 	    FileDataStore store = FileDataStoreFinder.getDataStore(file);
-	    FeatureSource<?, ?> featureSource = store.getFeatureSource();
+	    SimpleFeatureSource source = store.getFeatureSource();
 	    
-	    App.dataStore.addStore(store);
-	    addMapLayer(featureSource);
+	    App.dataController.mapData.put(source.getName().toString(), source);
+	    addMapLayer(source);
 	}
 	
-	public void addMapLayer(FeatureSource<?, ?> featureSource) {
+	public void addMapLayer(SimpleFeatureSource source) {
 	    
 	    Style style = new BasicPolygonStyle();
 	
-	    Layer layer = new FeatureLayer(featureSource, style);
+	    Layer layer = new FeatureLayer(source, style);
 	    
 	    map.addLayer(layer);
 	}

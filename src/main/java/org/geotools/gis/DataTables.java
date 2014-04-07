@@ -61,7 +61,7 @@ public class DataTables extends JFrame {
 
         table = new JTable();
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        table.setModel(new DefaultTableModel(5, 5));
+        table.setModel(new DefaultTableModel(0, 0));
         table.setPreferredScrollableViewportSize(new Dimension(500, 200));
 
         JScrollPane scrollPane = new JScrollPane(table);
@@ -70,10 +70,7 @@ public class DataTables extends JFrame {
         JMenuBar menubar = new JMenuBar();
         setJMenuBar(menubar);
 
-        featureTypeCBox = new JComboBox();
-        menubar.add(featureTypeCBox);
-
-        JMenu dataMenu = new JMenu("Data");
+        JMenu dataMenu = new JMenu("Actions");
         menubar.add(dataMenu);
         pack();
         
@@ -92,11 +89,19 @@ public class DataTables extends JFrame {
                 queryFeatures();
             }
         });
+//        dataMenu.add(new SafeAction("Create layer from features") {
+//            public void action(ActionEvent e) throws Throwable {
+//                createFeaturesLayer();
+//            }
+//        });
+        
+        featureTypeCBox = new JComboBox();
+        menubar.add(featureTypeCBox);
     }
     
     private void filterFeatures() throws Exception {
         String typeName = (String) featureTypeCBox.getSelectedItem();
-        SimpleFeatureSource source = App.dataStore.getFeatureSourceByName(typeName);
+        SimpleFeatureSource source = App.dataController.mapData.get(typeName);
 
         Filter filter = CQL.toFilter(text.getText());
 
@@ -108,7 +113,7 @@ public class DataTables extends JFrame {
     
     private void countFeatures() throws Exception {
         String typeName = (String) featureTypeCBox.getSelectedItem();
-        SimpleFeatureSource source = App.dataStore.getFeatureSourceByName(typeName);
+        SimpleFeatureSource source = App.dataController.mapData.get(typeName);
 
         Filter filter = CQL.toFilter(text.getText());
         SimpleFeatureCollection features = source.getFeatures(filter);
@@ -122,7 +127,7 @@ public class DataTables extends JFrame {
     
     private void queryFeatures() throws Exception {
         String typeName = (String) featureTypeCBox.getSelectedItem();
-        SimpleFeatureSource source = App.dataStore.getFeatureSourceByName(typeName);
+        SimpleFeatureSource source = App.dataController.mapData.get(typeName);
 
         FeatureType schema = source.getSchema();
         String name = schema.getGeometryDescriptor().getLocalName();

@@ -6,7 +6,7 @@ public class App {
 	
 	public static MapViewer mapWindow;
 	public static DataTables dataTables;
-	public static DataStore dataStore;
+	public static DataController dataController;
 	
     public static void main(String[] args) throws Exception {
     	
@@ -14,6 +14,6 @@ public class App {
     	
     	mapWindow = new MapViewer();
     	dataTables = new DataTables();
-    	dataStore = new DataStore();
+    	dataController = new DataController();
     }
 }
