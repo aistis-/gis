@@ -2,13 +2,8 @@ package org.geotools.gis;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.RenderingHints.Key;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
-import java.util.Set;
 
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -19,21 +14,11 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
-import org.geotools.data.DataAccess;
 import org.geotools.data.DataStore;
-import org.geotools.data.DataUtilities;
-import org.geotools.data.FeatureListener;
-import org.geotools.data.FeatureSource;
 import org.geotools.data.Query;
-import org.geotools.data.QueryCapabilities;
-import org.geotools.data.ResourceInfo;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQL;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.swing.JMapFrame;
 import org.geotools.swing.action.SafeAction;
 import org.geotools.swing.table.FeatureCollectionTableModel;
@@ -74,9 +59,9 @@ public class DataTables extends JFrame {
         menubar.add(dataMenu);
         pack();
         
-        dataMenu.add(new SafeAction("Use filter") {
+        dataMenu.add(new SafeAction("Use only selected features") {
             public void action(ActionEvent e) throws Throwable {
-                filterFeatures();
+                filterSelectedFeatures();
             }
         });
         dataMenu.add(new SafeAction("Count by query") {
@@ -93,8 +78,8 @@ public class DataTables extends JFrame {
         featureTypeCBox = new JComboBox();
         menubar.add(featureTypeCBox);
     }
-    
-    private void filterFeatures() throws Exception {
+	
+	private void filterFeatures() throws Exception {
         String typeName = (String) featureTypeCBox.getSelectedItem();
         SimpleFeatureSource source = App.dataController.mapData.get(typeName);
 

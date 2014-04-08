@@ -107,7 +107,7 @@ public class MapViewer {
 	}
 	
 	private void addLayerFromFile() throws Exception {
-	    File file = JFileDataStoreChooser.showOpenFile("shp, tif, rrd", null);
+	    File file = JFileDataStoreChooser.showOpenFile("shp", null);
 	    if (file == null) {
 	        return;
 	    }
