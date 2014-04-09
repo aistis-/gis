@@ -3,22 +3,24 @@ package org.geotools.gis;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
 import org.geotools.styling.BasicPolygonStyle;
 import org.geotools.styling.Style;
-import org.geotools.styling.StyleFactory;
 import org.geotools.swing.JMapFrame;
+import org.geotools.swing.action.SafeAction;
 import org.geotools.swing.data.JFileDataStoreChooser;
 import org.opengis.filter.identity.Identifier;
 import org.opengis.geometry.Envelope;
@@ -28,7 +30,6 @@ public class MapViewer {
 	public MapContent map;
 	public JMapFrame show;
 	
-	private StyleFactory sf = CommonFactoryFinder.getStyleFactory(null);
 	public SelectionTool selectionTool = new SelectionTool();
 	
 	public MapViewer() {
@@ -108,6 +109,23 @@ public class MapViewer {
 	    
 	    show.enableInputMethods(true);
 	    
+        JMenuBar menubar = new JMenuBar();
+        show.getToolBar().add(menubar);
+
+        JMenu dataMenu = new JMenu("Skaičiuoti");
+        menubar.add(dataMenu);
+        
+        dataMenu.add(new SafeAction("Bendrą upių tinklo ilgį administraciniuose vienetuose") {
+            public void action(ActionEvent e) throws Throwable {
+            	Calculations.calculateRiversLength();
+            }
+        });
+        
+        dataMenu.add(new SafeAction("Bendrą kelių tinklo ilgį administraciniuose vienetuose") {
+            public void action(ActionEvent e) throws Throwable {
+            }
+        });
+	    
 	    show.setVisible(true);
 	}
 	
@@ -140,4 +158,20 @@ public class MapViewer {
 	    
 	    selectionTool.updateMapView(layer, new HashSet<Identifier>());
 	}
+	
+    public void addLayerFromFile(String path) throws IOException {
+    	File file = new File(path);
+	
+	    FileDataStore store = FileDataStoreFinder.getDataStore(file);
+	    SimpleFeatureSource source = store.getFeatureSource();
+	    
+	    if (App.dataController.mapData.containsKey(source.getName().toString())) {
+	        return;
+	    }
+	    
+	    App.dataController.mapData.put(source.getName().toString(), source);
+	    App.dataTables.featureTypeCBox.addItem(source.getName().toString());
+	    
+	    addMapLayer(source);
+    }
 }

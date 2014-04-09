@@ -202,6 +202,7 @@ public class SelectionTool extends CursorTool {
         ReferencedEnvelope bbox = new ReferencedEnvelope(worldRect, getMapPane().getMapContent().getCoordinateReferenceSystem());
 
         Filter filter = ff.bbox(ff.property(geometryAttributeName), bbox);
+        
         return filter;
     }
 
