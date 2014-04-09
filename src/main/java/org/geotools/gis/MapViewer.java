@@ -3,6 +3,7 @@ package org.geotools.gis;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.HashSet;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -10,13 +11,17 @@ import javax.swing.JButton;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
 import org.geotools.styling.BasicPolygonStyle;
+import org.geotools.styling.FeatureTypeStyle;
 import org.geotools.styling.Style;
+import org.geotools.styling.StyleFactory;
 import org.geotools.swing.JMapFrame;
 import org.geotools.swing.data.JFileDataStoreChooser;
+import org.opengis.filter.identity.Identifier;
 import org.opengis.geometry.Envelope;
 
 public class MapViewer {
@@ -24,7 +29,8 @@ public class MapViewer {
 	public MapContent map;
 	public JMapFrame show;
 	
-	private SelectionTool selectionTool = new SelectionTool();
+	private StyleFactory sf = CommonFactoryFinder.getStyleFactory(null);
+	public SelectionTool selectionTool = new SelectionTool();
 	
 	public MapViewer() {
 		
@@ -83,7 +89,7 @@ public class MapViewer {
 	    btnClear.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) {
-				show.getMapPane().setCursorTool(selectionTool);
+				selectionTool.clearSelection();
 			}
 	    });
 	    
@@ -128,9 +134,11 @@ public class MapViewer {
 	public void addMapLayer(SimpleFeatureSource source) {
 	    
 	    Style style = new BasicPolygonStyle();
-	
+	    
 	    Layer layer = new FeatureLayer(source, style);
 	    
 	    map.addLayer(layer);
+	    
+	    selectionTool.updateMapView(layer, new HashSet<Identifier>());
 	}
 }

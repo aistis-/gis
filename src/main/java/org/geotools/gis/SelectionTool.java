@@ -61,7 +61,7 @@ public class SelectionTool extends CursorTool {
         selectedFeatureIds = new HashMap<>();
     }
 
-    private Rule createRule(Color outlineColor, Color fillColor, float lineWidth, SimpleFeatureSource featureSource) {
+    public Rule createRule(Color outlineColor, Color fillColor, float lineWidth, SimpleFeatureSource featureSource) {
         GeometryDescriptor descriptor = featureSource.getSchema().getGeometryDescriptor();
         String geometryAttributeName = descriptor.getLocalName();
 
@@ -152,7 +152,7 @@ public class SelectionTool extends CursorTool {
             return envelope;
     }
 
-    private void updateMapView(Layer layer, HashSet<Identifier> selectedIds) {
+    public void updateMapView(Layer layer, HashSet<Identifier> selectedIds) {
         FeatureTypeStyle fts = sf.createFeatureTypeStyle();
         SimpleFeatureSource featureSource = (SimpleFeatureSource) layer.getFeatureSource();
 
@@ -161,7 +161,7 @@ public class SelectionTool extends CursorTool {
             fts.rules().add(rule);
         } 
         else {
-            Rule selectedRule = createRule(Color.RED, Color.PINK, 1f, featureSource);
+            Rule selectedRule = createRule(Color.BLACK, Color.CYAN, 1f, featureSource);
             Rule otherRule = createRule(Color.BLACK, Color.GRAY, 1f, featureSource);
 
             selectedRule.setFilter(ff.id(selectedIds));
@@ -255,7 +255,6 @@ public class SelectionTool extends CursorTool {
         return filter;
     }
 
-    @Override
     public boolean drawDragBox() {
         return true;
     }
@@ -267,9 +266,15 @@ public class SelectionTool extends CursorTool {
         selectFeatures(filter, layer);
     }
     
+    public Filter getSelectedFeatures(Layer layer) {
+
+        Filter filter = ff.id(selectedFeatureIds.get(layer));
+        
+        return filter;
+    }
+    
     public HashMap<Layer, HashSet<Identifier>> getSelectedFeatureIds() {
             return selectedFeatureIds;
     }
-   
     
 }
