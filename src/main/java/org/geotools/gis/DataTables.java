@@ -29,6 +29,7 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.identity.Identifier;
+import org.opengis.geometry.Envelope;
 
 public class DataTables extends JFrame {
 
@@ -180,6 +181,12 @@ public class DataTables extends JFrame {
             App.mapWindow.selectionTool.selectFeatures(layer, selectedIds);
             
             App.mapWindow.show.toFront();
+            
+            Envelope envelope = App.mapWindow.selectionTool.getSelectedEnvelope();
+			
+			if (null != envelope) {
+				App.mapWindow.show.getMapPane().setDisplayArea(envelope);
+			}
     	}
     }
 }
