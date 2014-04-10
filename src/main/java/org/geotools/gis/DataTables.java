@@ -151,7 +151,9 @@ public class DataTables extends JFrame {
     }
     
     private void showSelectedFeaturesOnMap() throws IOException {
-    	if (table.getSelectedRowCount() > 0) {                    
+    	if (table.getSelectedRowCount() > 0) {
+    		App.mapWindow.selectionTool.clearSelection();
+    		
             HashSet<Identifier> selectedIds = new HashSet<Identifier>();
             
             Layer layer = App.dataController.getLayerByName((String) featureTypeCBox.getSelectedItem());
@@ -176,6 +178,8 @@ public class DataTables extends JFrame {
 			}
             
             App.mapWindow.selectionTool.selectFeatures(layer, selectedIds);
+            
+            App.mapWindow.show.toFront();
     	}
     }
 }
