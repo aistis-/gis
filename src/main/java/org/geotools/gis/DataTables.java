@@ -3,6 +3,7 @@ package org.geotools.gis;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.util.HashSet;
 
 import javax.swing.JComboBox;
@@ -64,14 +65,14 @@ public class DataTables extends JFrame {
                 filterSelectedFeatures();
             }
         });
-        dataMenu.add(new SafeAction("Count by query") {
+        dataMenu.add(new SafeAction("Count features by input query") {
             public void action(ActionEvent e) throws Throwable {
                 countFeatures();
             }
         });
-        dataMenu.add(new SafeAction("Use filter") {
+        dataMenu.add(new SafeAction("Filter features by input query") {
             public void action(ActionEvent e) throws Throwable {
-                filterFeatures();
+            	filterFeaturesFromInput();
             }
         });
         dataMenu.add(new SafeAction("Get geometry") {
@@ -84,32 +85,7 @@ public class DataTables extends JFrame {
         
         dataMenu.add(new SafeAction("Show selected features on map") {
             public void action(ActionEvent e) throws Throwable {
-            	if (table.getSelectedRowCount() > 0) {                    
-                    HashSet<Identifier> selectedIds = new HashSet<Identifier>();
-                    
-                    Layer layer = App.dataController.getLayerByName((String) featureTypeCBox.getSelectedItem());
-
-                    FeatureIterator iterator = layer.getFeatureSource().getFeatures().features();
-
-                    int selected = 0;
-                    
-					while (iterator.hasNext()) {
-						Feature feature = iterator.next();
-
-						for (int i = 0; i < table.getSelectedRowCount(); i++) {
-							if (feature.getIdentifier().getID().equals(table.getValueAt(table.getSelectedRows()[i], 0))) {
-								selectedIds.add(feature.getIdentifier());
-								selected++;
-							}
-	    			    }
-						
-						if (selected == table.getSelectedRowCount()) {
-							break;
-						}
-					}
-                    
-                    App.mapWindow.selectionTool.selectFeatures(layer, selectedIds);
-            	}
+            	showSelectedFeaturesOnMap();
             }
         });
         
@@ -131,7 +107,7 @@ public class DataTables extends JFrame {
         table.setModel(model);
     }
 	
-	private void filterFeatures() throws Exception {
+	private void filterFeaturesFromInput() throws Exception {
         String typeName = (String) featureTypeCBox.getSelectedItem();
         SimpleFeatureSource source = App.dataController.mapData.get(typeName);
 
@@ -172,5 +148,34 @@ public class DataTables extends JFrame {
 
         FeatureCollectionTableModel model = new FeatureCollectionTableModel(features);
         table.setModel(model);
+    }
+    
+    private void showSelectedFeaturesOnMap() throws IOException {
+    	if (table.getSelectedRowCount() > 0) {                    
+            HashSet<Identifier> selectedIds = new HashSet<Identifier>();
+            
+            Layer layer = App.dataController.getLayerByName((String) featureTypeCBox.getSelectedItem());
+
+            FeatureIterator iterator = layer.getFeatureSource().getFeatures().features();
+
+            int selected = 0;
+            
+			while (iterator.hasNext()) {
+				Feature feature = iterator.next();
+
+				for (int i = 0; i < table.getSelectedRowCount(); i++) {
+					if (feature.getIdentifier().getID().equals(table.getValueAt(table.getSelectedRows()[i], 0))) {
+						selectedIds.add(feature.getIdentifier());
+						selected++;
+					}
+			    }
+				
+				if (selected == table.getSelectedRowCount()) {
+					break;
+				}
+			}
+            
+            App.mapWindow.selectionTool.selectFeatures(layer, selectedIds);
+    	}
     }
 }

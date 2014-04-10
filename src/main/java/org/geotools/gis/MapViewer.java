@@ -148,17 +148,6 @@ public class MapViewer {
 	    addMapLayer(source);
 	}
 	
-	public void addMapLayer(SimpleFeatureSource source) {
-	    
-	    Style style = new BasicPolygonStyle();
-	    
-	    Layer layer = new FeatureLayer(source, style);
-	    
-	    map.addLayer(layer);
-	    
-	    selectionTool.updateMapView(layer, new HashSet<Identifier>());
-	}
-	
     public void addLayerFromFile(String path) throws IOException {
     	File file = new File(path);
 	
@@ -174,4 +163,15 @@ public class MapViewer {
 	    
 	    addMapLayer(source);
     }
+	
+	public void addMapLayer(SimpleFeatureSource source) {
+	    
+	    Style style = new BasicPolygonStyle();
+	    
+	    Layer layer = new FeatureLayer(source, style);
+	    
+	    map.addLayer(layer);
+	    
+	    selectionTool.updateMapView(layer, new HashSet<Identifier>());
+	}
 }
