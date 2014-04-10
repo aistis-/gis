@@ -116,29 +116,10 @@ public class MapViewer {
 				App.dataController.mapData.remove(event.getLayer().getFeatureSource().getName().toString());
 			}
 			
-			@Override
-			public void layerPreDispose(MapLayerListEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void layerMoved(MapLayerListEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void layerChanged(MapLayerListEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void layerAdded(MapLayerListEvent arg0) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void layerPreDispose(MapLayerListEvent arg0) {}
+			public void layerMoved(MapLayerListEvent arg0) {}
+			public void layerChanged(MapLayerListEvent arg0) {}
+			public void layerAdded(MapLayerListEvent arg0) {}
 		});
 	    
 	    show.enableInputMethods(true);
