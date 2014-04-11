@@ -114,6 +114,7 @@ public class MapViewer {
 			@Override
 			public void layerRemoved(MapLayerListEvent event) {
 				App.dataController.mapData.remove(event.getLayer().getFeatureSource().getName().toString());
+				App.dataTables.featureTypeCBox.removeItem(event.getLayer().getFeatureSource().getName().toString());
 			}
 			
 			public void layerPreDispose(MapLayerListEvent arg0) {}
@@ -145,12 +146,19 @@ public class MapViewer {
 	}
 	
 	private void addLayerFromFile() throws Exception {
-	    File file = JFileDataStoreChooser.showOpenFile("shp", null);
+	    File file = JFileDataStoreChooser.showOpenFile("shp, tif", null);
 	    if (file == null) {
 	        return;
 	    }
-	
-	    FileDataStore store = FileDataStoreFinder.getDataStore(file);
+	    
+	    String extension = "";
+	    
+	    int i = file.getName().lastIndexOf('.');
+	    if (i > 0) {
+	        extension = file.getName().substring(i+1);
+	    }
+	    
+    	FileDataStore store = FileDataStoreFinder.getDataStore(file);
 	    SimpleFeatureSource source = store.getFeatureSource();
 	    
 	    if (App.dataController.mapData.containsKey(source.getName().toString())) {
