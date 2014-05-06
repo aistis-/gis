@@ -161,7 +161,7 @@ public class SelectionTool extends CursorTool {
             fts.rules().add(rule);
         } 
         else {
-            Rule selectedRule = createRule(Color.BLACK, Color.CYAN, 1f, featureSource);
+            Rule selectedRule = createRule(Color.BLUE, Color.CYAN, 1f, featureSource);
             Rule otherRule = createRule(Color.BLACK, Color.GRAY, 1f, featureSource);
 
             selectedRule.setFilter(ff.id(selectedIds));
