@@ -5,7 +5,11 @@
 *.war
 *.ear
 
-# IDE files #
+# Eclipse IDE files #
 .classpath
 .project
 .settings/
+
+# IntelliJ IDE files #
+.idea/
+gis.iml
