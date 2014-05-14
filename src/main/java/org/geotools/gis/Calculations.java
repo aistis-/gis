@@ -23,8 +23,8 @@ public class Calculations {
         }
     }
 
-	public static void calculateRiversLength() throws IOException {
-		loadIfMissing("HIDRO_L", "C:\\Users\\lol\\Desktop\\gis\\LT10shp\\HIDRO_L.shp");
+	public static void calculateRiversLength(String shapfileName) throws IOException {
+		loadIfMissing("HIDRO_L", "C:\\Users\\lol\\Desktop\\gis\\LT10shp\\" + shapfileName + ".shp");
         loadIfMissing("RIBOS_P", "C:\\Users\\lol\\Desktop\\gis\\LT10shp\\RIBOS_P.shp");
 		
 //		SimpleFeatureSource hidroSource = App.dataController.mapData.get("HIDRO_L");
@@ -75,7 +75,7 @@ public class Calculations {
 //	        it.close();
 //	    }
 		
-		SimpleFeatureSource hidroSource = App.dataController.mapData.get("HIDRO_L");
+		SimpleFeatureSource hidroSource = App.dataController.mapData.get(shapfileName);
 		SimpleFeatureSource polygonsSource = App.dataController.mapData.get("RIBOS_P");
 		
 	    SimpleFeatureType schema = polygonsSource.getSchema();

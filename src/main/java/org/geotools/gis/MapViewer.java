@@ -133,13 +133,12 @@ public class MapViewer {
         
         dataMenu.add(new SafeAction("Bendrą upių tinklo ilgį administraciniuose vienetuose") {
             public void action(ActionEvent e) throws Throwable {
-            	Calculations.calculateRiversLength();
+            	Calculations.calculateRiversLength("HIDRO_L");
             }
         });
         
         dataMenu.add(new SafeAction("Bendrą kelių tinklo ilgį administraciniuose vienetuose") {
-            public void action(ActionEvent e) throws Throwable {
-            }
+            public void action(ActionEvent e) throws Throwable { Calculations.calculateRiversLength("KELIAI"); }
         });
 	    
 	    show.setVisible(true);
