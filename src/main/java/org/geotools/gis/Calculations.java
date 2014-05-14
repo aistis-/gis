@@ -8,8 +8,7 @@ import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.opengis.filter.Filter;
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureVisitor;
+import javax.swing.JOptionPane;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.FilterFactory2;
@@ -87,13 +86,22 @@ public class Calculations {
 	    String geomName2 = schema2.getGeometryDescriptor().getLocalName();
 	    FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
 
-	    Query outerGeometry = new Query(typeName, Filter.INCLUDE, new String[] { geomName });
+        Filter filter;
+
+        try {
+            filter = App.mapWindow.selectionTool.getSelectedFeatures(App.dataController.getLayerByName("RIBOS_P"));
+        } catch (Exception e) {
+            filter = Filter.INCLUDE;
+        }
+
+	    Query outerGeometry = new Query(typeName, filter, new String[] { geomName });
 	    SimpleFeatureCollection outerFeatures = polygonsSource.getFeatures(outerGeometry);
-	    SimpleFeatureIterator iterator = outerFeatures.features();
+        SimpleFeatureIterator iterator = outerFeatures.features();
+        SimpleFeatureIterator iteratorJoined;
 //	    System.out.println(hidroSource.getFeatures().size());
 //	    System.out.println(outerFeatures.size());
-	    int max = 0;
-	    
+	    int length = 0;
+
 	    try {
 	        while (iterator.hasNext()) {
 	            SimpleFeature feature = iterator.next();
@@ -106,17 +114,22 @@ public class Calculations {
 	                }
 	                Filter innerFilter = ff.intersects(ff.property(geomName2), ff.literal(geometry));
 //	                Filter innerFilter = ff.not( ff.disjoint(ff.property(geomName2), ff.literal( geometry )) );
-	                Query innerQuery = new Query(typeName2, innerFilter, Query.NO_NAMES);
+	                Query innerQuery = new Query(typeName2, innerFilter, Query.ALL_NAMES);
 	                SimpleFeatureCollection join = hidroSource.getFeatures(innerQuery);
-	                int size = join.size();
-	                max = Math.max(max, size);
+
+                    iteratorJoined = join.features();
+
+                    while (iteratorJoined.hasNext()) {
+                        feature = iteratorJoined.next();
+                        length += Double.parseDouble(feature.getAttribute("SHAPE_len").toString());
+                    }
 	            } catch (Exception skipBadData) {}
 	        }
 	    } finally {
 	        iterator.close();
 	    }
-	    System.out.println("At most " + max + " " + typeName2 + " features in a single " + typeName
-	            + " feature");
+
+        JOptionPane.showMessageDialog(null, "Calculated length is " + length);
 	}
 	
 }

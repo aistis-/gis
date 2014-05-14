@@ -19,7 +19,7 @@ public class DataController {
 		List<Layer> layers = App.mapWindow.map.layers();
 		
 		for (int i = 0; i < layers.size(); i++) {
-			if (name == layers.get(i).getFeatureSource().getName().toString()) {
+			if (name.equals(layers.get(i).getFeatureSource().getName().toString())) {
 				return layers.get(i);
 			}
 		}
