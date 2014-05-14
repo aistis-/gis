@@ -17,14 +17,15 @@ import com.vividsolutions.jts.geom.Geometry;
 
 public class Calculations {
 
+    private static void loadIfMissing(String name, String path) throws IOException {
+        if (!App.mapWindow.map.getUserData().containsKey(name)) {
+            App.mapWindow.addLayerFromFile(path);
+        }
+    }
+
 	public static void calculateRiversLength() throws IOException {
-		if (false == App.mapWindow.map.getUserData().containsKey("HIDRO_L")) {
-			App.mapWindow.addLayerFromFile("C:\\Users\\lol\\Desktop\\gis\\LT10shp\\HIDRO_L.shp");
-		}
-		
-		if (false == App.mapWindow.map.getUserData().containsKey("RIBOS_P")) {
-			App.mapWindow.addLayerFromFile("C:\\Users\\lol\\Desktop\\gis\\LT10shp\\RIBOS_P.shp");
-		}
+		loadIfMissing("HIDRO_L", "C:\\Users\\lol\\Desktop\\gis\\LT10shp\\HIDRO_L.shp");
+        loadIfMissing("RIBOS_P", "C:\\Users\\lol\\Desktop\\gis\\LT10shp\\RIBOS_P.shp");
 		
 //		SimpleFeatureSource hidroSource = App.dataController.mapData.get("HIDRO_L");
 //		SimpleFeatureSource polygonsSource = App.dataController.mapData.get("RIBOS_P");
@@ -98,8 +99,7 @@ public class Calculations {
 	    SimpleFeatureCollection outerFeatures = polygonsSource.getFeatures(outerGeometry);
         SimpleFeatureIterator iterator = outerFeatures.features();
         SimpleFeatureIterator iteratorJoined;
-//	    System.out.println(hidroSource.getFeatures().size());
-//	    System.out.println(outerFeatures.size());
+
 	    int length = 0;
 
 	    try {
@@ -131,5 +131,4 @@ public class Calculations {
 
         JOptionPane.showMessageDialog(null, "Calculated length is " + length);
 	}
-	
 }
