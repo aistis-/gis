@@ -29,6 +29,10 @@ public class Calculations {
         }
     }
 
+    public static void calculatePASTATAI() throws IOException {
+
+    }
+
     public static void calculatePLOTAI() throws IOException {
         loadIfMissing("RIBOS_P", "C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_SAV_P.shp");
         loadIfMissing("HIDRO_L", "C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_PLO_P.shp");
@@ -147,7 +151,7 @@ public class Calculations {
             i++;
         }
 
-        String[] columnNames = { "Region", "Area type", "Type freq", "Area plot", "Region plot", "Ratio"};
+        String[] columnNames = { "Region", "Area type", "Type frequency", "Area plot", "Region plot", "Ratio"};
 
         JTable table = new JTable(data, columnNames);
 

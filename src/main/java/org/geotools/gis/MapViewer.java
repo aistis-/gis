@@ -144,6 +144,10 @@ public class MapViewer {
         dataMenu.add(new SafeAction("Plotai ir jų santykiai administracinio vieneto plotu") {
             public void action(ActionEvent e) throws Throwable { Calculations.calculatePLOTAI(); }
         });
+
+        dataMenu.add(new SafeAction("Pastatų plotai ir jų santykiai su PLOTAI objektais") {
+            public void action(ActionEvent e) throws Throwable { Calculations.calculatePASTATAI(); }
+        });
 	    
 	    show.setVisible(true);
 	}
