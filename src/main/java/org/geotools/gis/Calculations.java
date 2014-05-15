@@ -199,7 +199,7 @@ public class Calculations {
             String key = entry.getKey();
             Double value = entry.getValue();
 
-            message += key + " " + value.toString();
+            message += key + " " + value.toString() + "\n";
         }
 
         JOptionPane.showMessageDialog(null, message);
