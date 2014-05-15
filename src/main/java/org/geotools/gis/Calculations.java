@@ -1,7 +1,10 @@
 package org.geotools.gis;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.geotools.data.Query;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -13,8 +16,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.FilterFactory2;
 
-import com.vividsolutions.jts.geom.Geometry;
-
 public class Calculations {
 
     private static void loadIfMissing(String name, String path) throws IOException {
@@ -24,8 +25,8 @@ public class Calculations {
     }
 
 	public static void calculateRiversLength(String shapfileName) throws IOException {
-		loadIfMissing("HIDRO_L", "C:\\Users\\lol\\Desktop\\gis\\LT10shp\\" + shapfileName + ".shp");
-        loadIfMissing("RIBOS_P", "C:\\Users\\lol\\Desktop\\gis\\LT10shp\\RIBOS_P.shp");
+		loadIfMissing("HIDRO_L", "C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\" + shapfileName + ".shp");
+        loadIfMissing("RIBOS_P", "C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_SAV_P.shp");
 		
 //		SimpleFeatureSource hidroSource = App.dataController.mapData.get("HIDRO_L");
 //		SimpleFeatureSource polygonsSource = App.dataController.mapData.get("RIBOS_P");
@@ -76,59 +77,131 @@ public class Calculations {
 //	    }
 		
 		SimpleFeatureSource hidroSource = App.dataController.mapData.get(shapfileName);
-		SimpleFeatureSource polygonsSource = App.dataController.mapData.get("RIBOS_P");
-		
-	    SimpleFeatureType schema = polygonsSource.getSchema();
-	    String typeName = schema.getTypeName();
-	    String geomName = schema.getGeometryDescriptor().getLocalName();
-	    
-	    SimpleFeatureType schema2 = hidroSource.getSchema();
-	    String typeName2 = schema2.getTypeName();
-	    String geomName2 = schema2.getGeometryDescriptor().getLocalName();
-	    FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+		SimpleFeatureSource polygonsSource = App.dataController.mapData.get("sven_SAV_P");
+
+        SimpleFeatureType schema2 = hidroSource.getSchema();
+        String typeName2 = schema2.getTypeName();
+        String geomName2 = schema2.getGeometryDescriptor().getLocalName();
+        FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
 
         Filter filter;
 
         try {
-            filter = App.mapWindow.selectionTool.getSelectedFeatures(App.dataController.getLayerByName("RIBOS_P"));
+            filter = App.mapWindow.selectionTool.getSelectedFeatures(App.dataController.getLayerByName("sven_SAV_P"));
         } catch (Exception e) {
             filter = Filter.INCLUDE;
         }
 
-	    Query outerGeometry = new Query(typeName, filter, new String[] { geomName });
-	    SimpleFeatureCollection outerFeatures = polygonsSource.getFeatures(outerGeometry);
+//        Query outerGeometry = new Query(typeName, filter, Query.ALL_NAMES);
+//	    SimpleFeatureCollection outerFeatures = polygonsSource.getFeatures(outerGeometry);
+//        SimpleFeatureIterator iterator = null;
+//        IntersectionFeatureCollection intersection = new IntersectionFeatureCollection();
+//
+//        try {
+//            SimpleFeatureCollection intersectedCollection = intersection.execute(
+//                hidroSource.getFeatures(),
+//                outerFeatures,
+//                null,
+//                null,
+//                IntersectionFeatureCollection.IntersectionMode.SECOND,
+//                false,
+//                false
+//            );
+//
+//            iterator = intersectedCollection.features();
+//            System.out.println(intersectedCollection.size());
+//
+//        } catch (Exception e) { e.printStackTrace(); }
+//
+//        SimpleFeature feature;
+//
+//	    int length = 0;
+//        int i = 0;
+//        int j = 0;
+//
+//        if (null != iterator) {
+//            try {
+//                while (iterator.hasNext()) {
+//                    i++;
+//
+//                    feature = iterator.next();
+//
+//                    if (null != feature.getAttribute("sven_SAV_P_SAV")) {
+//                        j++;
+//                    }
+//
+////                    System.out.println(feature.getAttribute("sven_SAV_P_SAV").toString());
+//
+////                    length += Double.parseDouble(feature.getAttribute(shapfileName + "_SHAPE_len").toString());
+//
+//                    System.out.println(feature.getAttribute("sven_SAV_P_SAV").toString());
+//                    System.out.println(i);
+//                    System.out.println(j);
+//                }
+//            } catch (Exception e) { e.printStackTrace(); } finally {
+//                iterator.close();
+//            }
+//        }
+
+        SimpleFeatureCollection outerFeatures = polygonsSource.getFeatures(filter);
         SimpleFeatureIterator iterator = outerFeatures.features();
         SimpleFeatureIterator iteratorJoined;
 
-	    int length = 0;
+        HashMap<String, Double> calculations = new HashMap<String, Double>();
+        Double length;
 
-	    try {
-	        while (iterator.hasNext()) {
-	            SimpleFeature feature = iterator.next();
-	            try {
-	                Geometry geometry = (Geometry) feature.getDefaultGeometry();
-	                
-	                if (!geometry.isValid()) {
-	                    // skip bad data
-	                    continue;
-	                }
-	                Filter innerFilter = ff.intersects(ff.property(geomName2), ff.literal(geometry));
-//	                Filter innerFilter = ff.not( ff.disjoint(ff.property(geomName2), ff.literal( geometry )) );
-	                Query innerQuery = new Query(typeName2, innerFilter, Query.ALL_NAMES);
-	                SimpleFeatureCollection join = hidroSource.getFeatures(innerQuery);
+        try {
+            while (iterator.hasNext()) {
+                SimpleFeature feature = iterator.next();
+                try {
+                    Geometry geometry = (Geometry) feature.getDefaultGeometry();
 
-                    iteratorJoined = join.features();
+                    if (!geometry.isValid()) {
+                        // skip bad data
+                        continue;
+                    }
+                    Filter innerFilter = ff.intersects(ff.property(geomName2), ff.literal(geometry));
+                    Query innerQuery = new Query(typeName2, innerFilter, Query.ALL_NAMES);
+                    SimpleFeatureCollection join = hidroSource.getFeatures(innerQuery);
+
+                    System.out.println("Found intersected features: " + join.size());
+
+                    SimpleFeatureCollection intersectedCollection = new IntersectedFeatureCollection(
+                        join,
+                        outerFeatures
+                    );
+
+                    iteratorJoined = intersectedCollection.features();
 
                     while (iteratorJoined.hasNext()) {
                         feature = iteratorJoined.next();
-                        length += Double.parseDouble(feature.getAttribute("SHAPE_len").toString());
-                    }
-	            } catch (Exception skipBadData) {}
-	        }
-	    } finally {
-	        iterator.close();
-	    }
 
-        JOptionPane.showMessageDialog(null, "Calculated length is " + length);
+                        length = Double.parseDouble(feature.getAttribute(shapfileName + "_SHAPE_len").toString());
+
+                        if (calculations.containsKey(feature.getAttribute("sven_SAV_P_SAV").toString())) {
+                            calculations.put(
+                                feature.getAttribute("sven_SAV_P_SAV").toString(),
+                                calculations.get(feature.getAttribute("sven_SAV_P_SAV").toString()) + length
+                            );
+                        } else {
+                            calculations.put(feature.getAttribute("sven_SAV_P_SAV").toString(), length);
+                        }
+                    }
+                } catch (Exception skipBadData) {}
+            }
+        } finally {
+            iterator.close();
+        }
+
+        String message = "Calculated lengths:\n";
+
+        for(Map.Entry<String, Double> entry : calculations.entrySet()) {
+            String key = entry.getKey();
+            Double value = entry.getValue();
+
+            message += key + " " + value.toString();
+        }
+
+        JOptionPane.showMessageDialog(null, message);
 	}
 }

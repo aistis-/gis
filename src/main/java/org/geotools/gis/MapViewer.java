@@ -133,12 +133,12 @@ public class MapViewer {
         
         dataMenu.add(new SafeAction("Bendrą upių tinklo ilgį administraciniuose vienetuose") {
             public void action(ActionEvent e) throws Throwable {
-            	Calculations.calculateRiversLength("HIDRO_L");
+            	Calculations.calculateRiversLength("sven_HID_L");
             }
         });
         
         dataMenu.add(new SafeAction("Bendrą kelių tinklo ilgį administraciniuose vienetuose") {
-            public void action(ActionEvent e) throws Throwable { Calculations.calculateRiversLength("KELIAI"); }
+            public void action(ActionEvent e) throws Throwable { Calculations.calculateRiversLength("sven_KEL_L"); }
         });
 	    
 	    show.setVisible(true);
@@ -154,7 +154,7 @@ public class MapViewer {
 	    
 	    int i = file.getName().lastIndexOf('.');
 	    if (i > 0) {
-	        extension = file.getName().substring(i+1);
+	        extension = file.getName().substring(i + 1);
 	    }
 	    
     	FileDataStore store = FileDataStoreFinder.getDataStore(file);
