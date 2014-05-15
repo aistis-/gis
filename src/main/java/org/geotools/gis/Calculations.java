@@ -1,7 +1,9 @@
 package org.geotools.gis;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -10,8 +12,11 @@ import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.swing.JMapFrame;
 import org.opengis.filter.Filter;
-import javax.swing.JOptionPane;
+
+import javax.swing.*;
+
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.FilterFactory2;
@@ -24,57 +29,137 @@ public class Calculations {
         }
     }
 
+    public static void calculatePLOTAI() throws IOException {
+        loadIfMissing("RIBOS_P", "C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_SAV_P.shp");
+        loadIfMissing("HIDRO_L", "C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_PLO_P.shp");
+
+        SimpleFeatureSource areasSource = App.dataController.mapData.get("sven_PLO_P");
+        SimpleFeatureSource polygonsSource = App.dataController.mapData.get("sven_SAV_P");
+
+        SimpleFeatureType schema2 = areasSource.getSchema();
+        String typeName2 = schema2.getTypeName();
+        String geomName2 = schema2.getGeometryDescriptor().getLocalName();
+        FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+
+        Filter filter;
+
+        try {
+            filter = App.mapWindow.selectionTool.getSelectedFeatures(App.dataController.getLayerByName("sven_SAV_P"));
+        } catch (Exception e) {
+            filter = Filter.INCLUDE;
+        }
+
+        SimpleFeatureCollection outerFeatures = polygonsSource.getFeatures(filter);
+        SimpleFeatureIterator iterator = outerFeatures.features();
+        SimpleFeatureIterator iteratorJoined;
+
+        HashMap<String, FeatureInfo> calculations = new HashMap<String, FeatureInfo>();
+
+        try {
+            while (iterator.hasNext()) {
+                SimpleFeature feature = iterator.next();
+                try {
+                    Geometry geometry = (Geometry) feature.getDefaultGeometry();
+
+                    if (!geometry.isValid()) {
+                        // skip bad data
+                        continue;
+                    }
+                    Filter innerFilter = ff.intersects(ff.property(geomName2), ff.literal(geometry));
+                    Query innerQuery = new Query(typeName2, innerFilter, Query.ALL_NAMES);
+                    SimpleFeatureCollection join = areasSource.getFeatures(innerQuery);
+
+                    System.out.println("Found intersected features: " + join.size());
+
+                    SimpleFeatureCollection intersectedCollection = new IntersectedFeatureCollection(
+                            join,
+                            outerFeatures
+                    );
+
+                    iteratorJoined = intersectedCollection.features();
+
+                    while (iteratorJoined.hasNext()) {
+                        feature = iteratorJoined.next();
+
+                        String type = "";
+
+                        switch (feature.getAttribute("sven_PLO_P_GKODAS").toString()) {
+                            case "hd1":
+                            case "hd2":
+                            case "hd3":
+                            case "hd4":
+                            case "hd9":
+                                type = "Hidro";
+                                break;
+                            case "ms0":
+                                type = "Woods";
+                                break;
+                            case "ms4":
+                                type = "Gardens";
+                                break;
+                            case "pu0":
+                                type = "Buildings";
+                                break;
+                            default:
+                                type = "Unknown";
+                        }
+
+                        String key = feature.getAttribute("sven_SAV_P_SAV").toString() + "_" + type;
+
+                        if (!calculations.containsKey(key)) {
+                            calculations.put(key, new FeatureInfo());
+                        }
+
+                        FeatureInfo featureInfo = calculations.get(key);
+
+                        featureInfo.region = feature.getAttribute("sven_SAV_P_SAV").toString();
+
+                        featureInfo.type = type;
+                        featureInfo.frequency++;
+                        featureInfo.size += Double.parseDouble(feature.getAttribute("sven_PLO_P_SHAPE_area").toString());
+                        featureInfo.regionPlot = Double.parseDouble(feature.getAttribute("sven_SAV_P_PLOT").toString());
+                    }
+                } catch (Exception e) { e.printStackTrace(); }
+            }
+        } finally {
+            iterator.close();
+        }
+
+        String[][] data = new String[calculations.size()][6];
+
+        Iterator<String> iter = calculations.keySet().iterator();
+        int i = 0;
+        while (iter.hasNext()) {
+            String it = iter.next();
+
+            data[i][0] = calculations.get(it).region;
+            data[i][1] = calculations.get(it).type;
+            data[i][2] = Integer.toString(calculations.get(it).frequency);
+            data[i][3] = Double.toString(calculations.get(it).size);
+            data[i][4] = Double.toString(calculations.get(it).regionPlot);
+
+            if (0 == calculations.get(it).regionPlot) {
+                data[i][5] = "0";
+            } else {
+                data[i][5] = new DecimalFormat("#.###").format((calculations.get(it).size * 100) / calculations.get(it).regionPlot);
+            }
+
+            i++;
+        }
+
+        String[] columnNames = { "Region", "Area type", "Type freq", "Area plot", "Region plot", "Ratio"};
+
+        JTable table = new JTable(data, columnNames);
+
+        JFrame windows = new JFrame();
+        windows.getContentPane().add(new JScrollPane(table));
+        windows.setExtendedState(JMapFrame.MAXIMIZED_BOTH);
+        windows.setVisible(true);
+    }
+
 	public static void calculateRiversLength(String shapfileName) throws IOException {
 		loadIfMissing("HIDRO_L", "C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\" + shapfileName + ".shp");
         loadIfMissing("RIBOS_P", "C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_SAV_P.shp");
-		
-//		SimpleFeatureSource hidroSource = App.dataController.mapData.get("HIDRO_L");
-//		SimpleFeatureSource polygonsSource = App.dataController.mapData.get("RIBOS_P");
-//		
-//		SimpleFeatureCollection polygonCollection = polygonsSource.getFeatures();
-//	    SimpleFeatureCollection fcResult = null;
-//	    final DefaultFeatureCollection found = new DefaultFeatureCollection();
-//	    
-//	    FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
-//	    SimpleFeature feature = null;
-//	    
-//	    Filter polyCheck = null;
-//	    Filter andFil = null;
-//	    Filter boundsCheck = null;
-//	    
-//	    String qryStr = null;
-//	    
-//	    
-//	    
-//	    SimpleFeatureIterator it = polygonCollection.features();
-//	    try {
-//	        while (it.hasNext()) {
-//	            feature = it.next();
-//	            BoundingBox bounds = feature.getBounds();
-//	            boundsCheck = ff.bbox(ff.property("the_geom"), bounds);
-//	            
-//	            Geometry geom = (Geometry) feature.getDefaultGeometry();
-//	            polyCheck = ff.intersects(ff.property("the_geom"), ff.literal(geom));
-//	            
-//	            andFil = ff.and(boundsCheck, polyCheck);
-//	            
-//	            try {
-//	                fcResult = hidroSource.getFeatures(andFil);
-//	                // go through results and copy out the found features
-//	                fcResult.accepts(new FeatureVisitor() {
-//	                    public void visit(Feature feature) {
-//	                        found.add((SimpleFeature) feature);
-//	                    }
-//	                }, null);
-//	            } catch (IOException e1) {
-//	                System.out.println("Unable to run filter for " + feature.getID() + ":" + e1);
-//	                continue;
-//	            }
-//	            
-//	        }
-//	    } finally {
-//	        it.close();
-//	    }
 		
 		SimpleFeatureSource hidroSource = App.dataController.mapData.get(shapfileName);
 		SimpleFeatureSource polygonsSource = App.dataController.mapData.get("sven_SAV_P");
@@ -91,57 +176,6 @@ public class Calculations {
         } catch (Exception e) {
             filter = Filter.INCLUDE;
         }
-
-//        Query outerGeometry = new Query(typeName, filter, Query.ALL_NAMES);
-//	    SimpleFeatureCollection outerFeatures = polygonsSource.getFeatures(outerGeometry);
-//        SimpleFeatureIterator iterator = null;
-//        IntersectionFeatureCollection intersection = new IntersectionFeatureCollection();
-//
-//        try {
-//            SimpleFeatureCollection intersectedCollection = intersection.execute(
-//                hidroSource.getFeatures(),
-//                outerFeatures,
-//                null,
-//                null,
-//                IntersectionFeatureCollection.IntersectionMode.SECOND,
-//                false,
-//                false
-//            );
-//
-//            iterator = intersectedCollection.features();
-//            System.out.println(intersectedCollection.size());
-//
-//        } catch (Exception e) { e.printStackTrace(); }
-//
-//        SimpleFeature feature;
-//
-//	    int length = 0;
-//        int i = 0;
-//        int j = 0;
-//
-//        if (null != iterator) {
-//            try {
-//                while (iterator.hasNext()) {
-//                    i++;
-//
-//                    feature = iterator.next();
-//
-//                    if (null != feature.getAttribute("sven_SAV_P_SAV")) {
-//                        j++;
-//                    }
-//
-////                    System.out.println(feature.getAttribute("sven_SAV_P_SAV").toString());
-//
-////                    length += Double.parseDouble(feature.getAttribute(shapfileName + "_SHAPE_len").toString());
-//
-//                    System.out.println(feature.getAttribute("sven_SAV_P_SAV").toString());
-//                    System.out.println(i);
-//                    System.out.println(j);
-//                }
-//            } catch (Exception e) { e.printStackTrace(); } finally {
-//                iterator.close();
-//            }
-//        }
 
         SimpleFeatureCollection outerFeatures = polygonsSource.getFeatures(filter);
         SimpleFeatureIterator iterator = outerFeatures.features();

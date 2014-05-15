@@ -128,17 +128,21 @@ public class MapViewer {
         JMenuBar menubar = new JMenuBar();
         show.getToolBar().add(menubar);
 
-        JMenu dataMenu = new JMenu("Skaičiuoti");
+        JMenu dataMenu = new JMenu("II užduotis");
         menubar.add(dataMenu);
         
-        dataMenu.add(new SafeAction("Bendrą upių tinklo ilgį administraciniuose vienetuose") {
+        dataMenu.add(new SafeAction("Bendras upių tinklo ilgį administraciniuose vienetuose") {
             public void action(ActionEvent e) throws Throwable {
             	Calculations.calculateRiversLength("sven_HID_L");
             }
         });
         
-        dataMenu.add(new SafeAction("Bendrą kelių tinklo ilgį administraciniuose vienetuose") {
+        dataMenu.add(new SafeAction("Bendras kelių tinklo ilgį administraciniuose vienetuose") {
             public void action(ActionEvent e) throws Throwable { Calculations.calculateRiversLength("sven_KEL_L"); }
+        });
+
+        dataMenu.add(new SafeAction("Plotai ir jų santykiai administracinio vieneto plotu") {
+            public void action(ActionEvent e) throws Throwable { Calculations.calculatePLOTAI(); }
         });
 	    
 	    show.setVisible(true);
