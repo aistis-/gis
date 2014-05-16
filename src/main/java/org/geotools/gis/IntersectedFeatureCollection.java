@@ -1,5 +1,6 @@
 package org.geotools.gis;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -35,6 +36,7 @@ class IntersectedFeatureCollection extends DecoratingSimpleFeatureCollection {
 
     }
 
+    @Override
     public SimpleFeatureIterator features() {
         return new IntersectedFeatureIterator(delegate.features(), delegate, features, delegate.getSchema(), features.getSchema());
     }
@@ -83,33 +85,40 @@ class IntersectedFeatureIterator implements SimpleFeatureIterator {
         this.secondFeatures = secondFeatures;
         SimpleFeatureTypeBuilder tb = new SimpleFeatureTypeBuilder();
         GeometryDescriptor geometryDescriptor = firstFeatureCollectionSchema.getGeometryDescriptor();
+
         // gather the attributes from the first feature collection
         for (AttributeDescriptor descriptor : firstFeatureCollectionSchema.getAttributeDescriptors()) {
             if (!(descriptor.getType() instanceof GeometryTypeImpl)
                     || (!geometryDescriptor.getName().equals(descriptor.getName()))) {
                 AttributeTypeBuilder builder = new AttributeTypeBuilder();
-                builder.setName(this.firstFeatures.features().next().getFeatureType().getName().getLocalPart()
-                        + "_" + descriptor.getName());
                 builder.setNillable(descriptor.isNillable());
                 builder.setBinding(descriptor.getType().getBinding());
                 builder.setMinOccurs(descriptor.getMinOccurs());
                 builder.setMaxOccurs(descriptor.getMaxOccurs());
                 builder.setDefaultValue(descriptor.getDefaultValue());
-                builder.setCRS(this.firstFeatures.features().next().getFeatureType().getCoordinateReferenceSystem());
-                AttributeDescriptor intersectionDescriptor = builder.buildDescriptor(
-                        this.firstFeatures.features().next().getFeatureType().getName().getLocalPart()
-                                + "_" + descriptor.getName(), descriptor.getType());
+                AttributeDescriptor intersectionDescriptor;
+
+                try {
+                    builder.setName(this.firstFeatures.features().next().getFeatureType().getName().getLocalPart()
+                            + "_" + descriptor.getName());
+                    builder.setCRS(this.firstFeatures.features().next().getFeatureType().getCoordinateReferenceSystem());
+                    intersectionDescriptor = builder.buildDescriptor(
+                            this.firstFeatures.features().next().getFeatureType().getName().getLocalPart()
+                                    + "_" + descriptor.getName(), descriptor.getType());
+                } catch (NoSuchElementException e) {
+                    builder.setName("NO_NAME_" + descriptor.getName());
+                    builder.setCRS(this.secondFeatures.features().next().getFeatureType().getCoordinateReferenceSystem());
+                    intersectionDescriptor = builder.buildDescriptor(
+                            "NO_NAME_" + descriptor.getName(), descriptor.getType());
+                }
                 tb.add(intersectionDescriptor);
                 // System.out.println(intersectionDescriptor);
                 tb.addBinding(descriptor.getType());
             } else {
                 tb.add(descriptor);
-                // System.out.println(descriptor);
             }
-
         }
         // gather the attributes from the second feature collection
-        geometryDescriptor = secondFeatureCollectionSchema.getGeometryDescriptor();
         for (AttributeDescriptor descriptor : secondFeatureCollectionSchema.getAttributeDescriptors()) {
             if (!(descriptor.getType() instanceof GeometryTypeImpl)
                     || (!geometryDescriptor.getName().equals(descriptor.getName()))) {
@@ -129,7 +138,6 @@ class IntersectedFeatureIterator implements SimpleFeatureIterator {
                                 + "_" + descriptor.getName(), descriptor.getType());
                 tb.addBinding(descriptor.getType());
                 tb.add(intersectionDescriptor);
-                //  System.out.println(intersectionDescriptor);
             }
         }
         tb.setDescription(firstFeatureCollectionSchema.getDescription());
