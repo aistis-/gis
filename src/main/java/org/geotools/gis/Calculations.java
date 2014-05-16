@@ -2,11 +2,13 @@ package org.geotools.gis;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import com.vividsolutions.jts.geom.Geometry;
+import org.geotools.data.DataUtilities;
 import org.geotools.data.Query;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -16,6 +18,7 @@ import org.geotools.swing.JMapFrame;
 import org.opengis.filter.Filter;
 
 import javax.swing.*;
+import javax.xml.crypto.Data;
 
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -77,21 +80,34 @@ public class Calculations {
 
                 System.out.println("Found intersected features: " + join.size());
 
-//                SimpleFeatureCollection intersectedCollection = new IntersectedFeatureCollection(
-//                    join,
-//                    outerFeatures
-//                );
-
-                IntersectionFeatureCollection inter = new IntersectionFeatureCollection();
-                SimpleFeatureCollection intersectedCollection = inter.execute(
-                        join,
-                        outerFeatures,
-                        null,
-                        null,
-                        IntersectionFeatureCollection.IntersectionMode.INTERSECTION,
-                        false,
-                        false
+                SimpleFeatureCollection intersectedCollection = new IntersectedFeatureCollection(
+                    join,
+                    outerFeatures
                 );
+
+                SimpleFeatureIterator iterator2 = intersectedCollection.features();
+                SimpleFeature feature2;
+
+                ArrayList<SimpleFeature> list = new ArrayList<>();
+
+                while (iterator2.hasNext()) {
+                    feature2 = iterator2.next();
+
+                    list.add(feature2);
+                }
+
+                intersectedCollection = DataUtilities.collection(list);
+
+//                IntersectionFeatureCollection inter = new IntersectionFeatureCollection();
+//                SimpleFeatureCollection intersectedCollection = inter.execute(
+//                        join,
+//                        outerFeatures,
+//                        null,
+//                        null,
+//                        IntersectionFeatureCollection.IntersectionMode.INTERSECTION,
+//                        false,
+//                        false
+//                );
 
                 iteratorJoined = intersectedCollection.features();
 
@@ -143,7 +159,7 @@ public class Calculations {
                                 type = "Unknown";
                         }
 
-                        try {
+//                        try {
                             String key = feature.getAttribute("sven_SAV_P_SAV").toString() + "_" + type;
 
                             if (!calculations.containsKey(key)) {
@@ -156,11 +172,12 @@ public class Calculations {
 
                             featureInfo.type = type;
                             featureInfo.frequency++;
-                            featureInfo.size += Double.parseDouble(feature.getAttribute("sven_PAS_P_SHAPE_area").toString());
-                            featureInfo.regionPlot += Double.parseDouble(feature.getAttribute("sven_SPLO_P_PLOT").toString());
-                        } catch (NullPointerException e) {
-                            continue;
-                        }
+                            featureInfo.size += ((Geometry) feature.getDefaultGeometry()).getArea();
+                            featureInfo.size += Double.parseDouble(feature.getAttribute("sven_PLO_P_SHAPE_area").toString());
+                            featureInfo.regionPlot += Double.parseDouble(feature.getAttribute("sven_PLO_P_PLOT").toString());
+//                        } catch (NullPointerException e) {
+//                            continue;
+//                        }
                     }
                 }
             }
@@ -291,6 +308,7 @@ public class Calculations {
                         featureInfo.type = type;
                         featureInfo.frequency++;
                         featureInfo.size += Double.parseDouble(feature.getAttribute("sven_PLO_P_SHAPE_area").toString());
+//                        featureInfo.size += ((Geometry)feature.getDefaultGeometry()).getArea();
                         featureInfo.regionPlot = Double.parseDouble(feature.getAttribute("sven_SAV_P_PLOT").toString());
                     }
                 } catch (Exception e) { e.printStackTrace(); }
@@ -379,12 +397,36 @@ public class Calculations {
                         outerFeatures
                     );
 
+                    SimpleFeatureIterator iterator2 = intersectedCollection.features();
+                    SimpleFeature feature2;
+
+                    ArrayList<SimpleFeature> list = new ArrayList<>();
+
+                    while (iterator2.hasNext()) {
+                        feature2 = iterator2.next();
+
+                        list.add(feature2);
+                    }
+
+                    intersectedCollection = DataUtilities.collection(list);
+
                     iteratorJoined = intersectedCollection.features();
 
                     while (iteratorJoined.hasNext()) {
                         feature = iteratorJoined.next();
 
+//                        geometry = (Geometry)(feature.getDefaultGeometry());
+//                        geometry.geometryChanged();
+//                        length = geometry.getLength();
                         length = Double.parseDouble(feature.getAttribute(shapfileName + "_SHAPE_len").toString());
+
+                        if (null != feature.getAttribute("NO_NAME_SHAPE_len")) {
+                            System.out.println("LOL");
+                        }
+
+                        if (shapfileName.equals("sven_HID_L") && !feature.getAttribute("sven_HID_L_TIPAS").toString().equals("1")) {
+                            length = 0.;
+                        }
 
                         if (calculations.containsKey(feature.getAttribute("sven_SAV_P_SAV").toString())) {
                             calculations.put(
@@ -395,7 +437,7 @@ public class Calculations {
                             calculations.put(feature.getAttribute("sven_SAV_P_SAV").toString(), length);
                         }
                     }
-                } catch (Exception skipBadData) {}
+                } catch (Exception e) {e.printStackTrace(); }
             }
         } finally {
             iterator.close();
