@@ -2,27 +2,28 @@ package org.geotools.gis;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import com.vividsolutions.jts.geom.Geometry;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.Query;
+import org.geotools.data.collection.ListFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.feature.FeatureCollections;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.swing.JMapFrame;
+import org.opengis.feature.type.FeatureType;
 import org.opengis.filter.Filter;
 
 import javax.swing.*;
-import javax.xml.crypto.Data;
 
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 public class Calculations {
 
@@ -307,8 +308,7 @@ public class Calculations {
 
                         featureInfo.type = type;
                         featureInfo.frequency++;
-                        featureInfo.size += Double.parseDouble(feature.getAttribute("sven_PLO_P_SHAPE_area").toString());
-//                        featureInfo.size += ((Geometry)feature.getDefaultGeometry()).getArea();
+                        featureInfo.size += ((Geometry)feature.getDefaultGeometry()).getArea();
                         featureInfo.regionPlot = Double.parseDouble(feature.getAttribute("sven_SAV_P_PLOT").toString());
                     }
                 } catch (Exception e) { e.printStackTrace(); }
@@ -356,9 +356,9 @@ public class Calculations {
 		SimpleFeatureSource hidroSource = App.dataController.mapData.get(shapfileName);
 		SimpleFeatureSource polygonsSource = App.dataController.mapData.get("sven_SAV_P");
 
-        SimpleFeatureType schema2 = hidroSource.getSchema();
-        String typeName2 = schema2.getTypeName();
-        String geomName2 = schema2.getGeometryDescriptor().getLocalName();
+        SimpleFeatureType schema = hidroSource.getSchema();
+//        String typeName = schema.getTypeName();
+//        String geomName = schema.getGeometryDescriptor().getLocalName();
         FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
 
         Filter filter;
@@ -371,87 +371,122 @@ public class Calculations {
 
         SimpleFeatureCollection outerFeatures = polygonsSource.getFeatures(filter);
         SimpleFeatureIterator iterator = outerFeatures.features();
-        SimpleFeatureIterator iteratorJoined;
+//        SimpleFeatureIterator iterator2;
+        SimpleFeature feature;
+//        SimpleFeatureType featureType = null;
 
-        HashMap<String, Double> calculations = new HashMap<>();
+//        ArrayList<SimpleFeature> filteredFeaturesList = new ArrayList<>();
+
+        String geometryPropertyName = schema.getGeometryDescriptor().getLocalName();
+        CoordinateReferenceSystem targetCRS = schema.getGeometryDescriptor().getCoordinateReferenceSystem();
+
+        ReferencedEnvelope bbox = new ReferencedEnvelope(outerFeatures.getBounds().getMinX(), outerFeatures.getBounds().getMaxX(),
+                outerFeatures.getBounds().getMinY(), outerFeatures.getBounds().getMaxY(), targetCRS);
+
+        filter = ff.bbox(ff.property(geometryPropertyName), bbox);
+
+        SimpleFeatureCollection filteredFeatures = hidroSource.getFeatures(filter);
+
+//        while (iterator.hasNext()) {
+//            feature = iterator.next();
+//
+//            Geometry geometry = (Geometry) feature.getDefaultGeometry();
+//
+//            if (!geometry.isValid()) {
+//                continue;
+//            }
+//            Filter innerFilter = ff.intersects(ff.property(geomName), ff.literal(geometry));
+//            Query innerQuery = new Query(typeName, innerFilter, Query.ALL_NAMES);
+//            SimpleFeatureCollection filtered = hidroSource.getFeatures(innerQuery);
+//
+//            iterator2 = filtered.features();
+//
+//            while (iterator2.hasNext()) {
+//                feature = iterator2.next();
+//
+//                featureType = feature.getFeatureType();
+//
+//                filteredFeaturesList.add(feature);
+//            }
+//        }
+//
+//        System.out.println("1: " + filteredFeaturesList.size());
+
+//        SimpleFeatureCollection filteredFeatures = DataUtilities.collection(filteredFeaturesList);
+//        SimpleFeatureCollection filteredFeatures = new ListFeatureCollection(featureType, filteredFeaturesList);
+
+        IntersectionFeatureCollection intersection = new IntersectionFeatureCollection();
+
+        SimpleFeatureCollection intersectedCollection = intersection.execute(
+            filteredFeatures,
+            outerFeatures,
+            null,
+            null,
+            IntersectionFeatureCollection.IntersectionMode.INTERSECTION,
+            false,
+            false
+        );
+//
+//        SimpleFeatureCollection intersectedCollection = new IntersectedFeatureCollection(
+//            filteredFeatures,
+//            outerFeatures
+//        );
+
+        iterator = intersectedCollection.features();
+        Geometry geometry;
+        HashMap<String, FeatureInfo> calculations = new HashMap<>();
         Double length;
 
         try {
             while (iterator.hasNext()) {
-                SimpleFeature feature = iterator.next();
-                try {
-                    Geometry geometry = (Geometry) feature.getDefaultGeometry();
+                feature = iterator.next();
 
-                    if (!geometry.isValid()) {
-                        // skip bad data
-                        continue;
-                    }
-                    Filter innerFilter = ff.intersects(ff.property(geomName2), ff.literal(geometry));
-                    Query innerQuery = new Query(typeName2, innerFilter, Query.ALL_NAMES);
-                    SimpleFeatureCollection join = hidroSource.getFeatures(innerQuery);
+                geometry = (Geometry) (feature.getDefaultGeometry());
+                length = geometry.getLength();
 
-                    System.out.println("Found intersected features: " + join.size());
+                if (shapfileName.equals("sven_HID_L") && !feature.getAttribute("sven_HID_L_TIPAS").toString().equals("1")) {
+                    continue;
+                }
 
-                    SimpleFeatureCollection intersectedCollection = new IntersectedFeatureCollection(
-                        join,
-                        outerFeatures
-                    );
+                String key = feature.getAttribute("sven_SAV_P_SAV").toString();
 
-                    SimpleFeatureIterator iterator2 = intersectedCollection.features();
-                    SimpleFeature feature2;
+                if (!calculations.containsKey(key)) {
+                    calculations.put(key, new FeatureInfo());
+                }
 
-                    ArrayList<SimpleFeature> list = new ArrayList<>();
+                FeatureInfo featureInfo = calculations.get(key);
 
-                    while (iterator2.hasNext()) {
-                        feature2 = iterator2.next();
-
-                        list.add(feature2);
-                    }
-
-                    intersectedCollection = DataUtilities.collection(list);
-
-                    iteratorJoined = intersectedCollection.features();
-
-                    while (iteratorJoined.hasNext()) {
-                        feature = iteratorJoined.next();
-
-//                        geometry = (Geometry)(feature.getDefaultGeometry());
-//                        geometry.geometryChanged();
-//                        length = geometry.getLength();
-                        length = Double.parseDouble(feature.getAttribute(shapfileName + "_SHAPE_len").toString());
-
-                        if (null != feature.getAttribute("NO_NAME_SHAPE_len")) {
-                            System.out.println("LOL");
-                        }
-
-                        if (shapfileName.equals("sven_HID_L") && !feature.getAttribute("sven_HID_L_TIPAS").toString().equals("1")) {
-                            length = 0.;
-                        }
-
-                        if (calculations.containsKey(feature.getAttribute("sven_SAV_P_SAV").toString())) {
-                            calculations.put(
-                                feature.getAttribute("sven_SAV_P_SAV").toString(),
-                                calculations.get(feature.getAttribute("sven_SAV_P_SAV").toString()) + length
-                            );
-                        } else {
-                            calculations.put(feature.getAttribute("sven_SAV_P_SAV").toString(), length);
-                        }
-                    }
-                } catch (Exception e) {e.printStackTrace(); }
+                featureInfo.region = feature.getAttribute("sven_SAV_P_SAV").toString();
+                featureInfo.frequency++;
+                featureInfo.size += length;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             iterator.close();
         }
 
-        String message = "Calculated lengths:\n";
+        String[][] data = new String[calculations.size()][3];
 
-        for(Map.Entry<String, Double> entry : calculations.entrySet()) {
-            String key = entry.getKey();
-            Double value = entry.getValue();
+        Iterator<String> iter = calculations.keySet().iterator();
+        int i = 0;
+        while (iter.hasNext()) {
+            String it = iter.next();
 
-            message += key + " " + value.toString() + "\n";
+            data[i][0] = calculations.get(it).region;
+            data[i][1] = Integer.toString(calculations.get(it).frequency);
+            data[i][2] = Double.toString(calculations.get(it).size);
+
+            i++;
         }
 
-        JOptionPane.showMessageDialog(null, message);
+        String[] columnNames = { "Region", "Frequency", "Length"};
+
+        JTable table = new JTable(data, columnNames);
+
+        JFrame windows = new JFrame();
+        windows.getContentPane().add(new JScrollPane(table));
+        windows.setExtendedState(JMapFrame.MAXIMIZED_BOTH);
+        windows.setVisible(true);
 	}
 }

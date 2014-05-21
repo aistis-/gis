@@ -14,5 +14,7 @@ public class App {
     	mapWindow = new MapViewer();
     	dataTables = new DataTables();
     	dataController = new DataController();
+
+        App.mapWindow.addLayerFromFile("C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_SAV_P.shp");
     }
 }
