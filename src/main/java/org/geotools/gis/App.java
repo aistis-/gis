@@ -15,6 +15,8 @@ public class App {
     	dataTables = new DataTables();
     	dataController = new DataController();
 
+//        App.mapWindow.addLayerFromFile("C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_REL_P.shp");
+//        App.mapWindow.addLayerFromFile("C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_HID_L.shp");
         App.mapWindow.addLayerFromFile("C:\\Users\\lol\\Desktop\\gis\\LTsventoji\\sven_SAV_P.shp");
     }
 }

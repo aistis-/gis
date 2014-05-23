@@ -148,7 +148,20 @@ public class MapViewer {
         dataMenu.add(new SafeAction("Pastatų plotai ir jų santykiai su PLOTAI objektais") {
             public void action(ActionEvent e) throws Throwable { Calculations.calculatePASTATAI(); }
         });
-	    
+
+        JMenu dataMenu2 = new JMenu("III užduotis");
+        menubar.add(dataMenu2);
+
+        dataMenu2.add(new SafeAction("Rasti vietą užtvankai") {
+            public void action(ActionEvent e) {
+                try {
+                    Calculations.findPlaceForDam();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
 	    show.setVisible(true);
 	}
 	
