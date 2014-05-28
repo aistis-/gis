@@ -155,7 +155,7 @@ public class MapViewer {
         dataMenu2.add(new SafeAction("Rasti vietą užtvankai") {
             public void action(ActionEvent e) {
                 try {
-                    Calculations.findPlaceForDam();
+                    DamFinding.findPlaceForDam();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
