@@ -208,13 +208,20 @@ public class MapViewer {
     }
 	
 	public void addMapLayer(SimpleFeatureSource source) {
-	    
-	    Style style = new BasicPolygonStyle();
-	    
-	    Layer layer = new FeatureLayer(source, style);
-	    
-	    map.addLayer(layer);
-	    
-	    selectionTool.updateMapView(layer, new HashSet<Identifier>());
+        addMapLayer(source, null);
 	}
+
+    public void addMapLayer(SimpleFeatureSource source, String layerTitle) {
+        Style style = new BasicPolygonStyle();
+
+        Layer layer = new FeatureLayer(source, style);
+
+        if (null != layerTitle) {
+            layer.setTitle(layerTitle);
+        }
+
+        map.addLayer(layer);
+
+        selectionTool.updateMapView(layer, new HashSet<Identifier>());
+    }
 }
